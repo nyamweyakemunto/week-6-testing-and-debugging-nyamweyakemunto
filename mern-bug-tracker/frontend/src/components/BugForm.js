@@ -1,53 +1,59 @@
-import { useState } from 'react';
-import { createBug } from '../api';
+import { useState } from "react";
 
-export default function BugForm({ onBugCreated }) {
-  const [form, setForm] = useState({ title: '', description: '' });
-  const [error, setError] = useState('');
+const BugForm = ({ onSubmit, initialData }) => {
+  const [bug, setBug] = useState(
+    initialData || { title: "", description: "", status: "open" }
+  );
 
-  const handleSubmit = async (e) => {
+  const handleChange = (e) => {
+    setBug({ ...bug, [e.target.name]: e.target.value });
+  };
+
+  const handleSubmit = (e) => {
     e.preventDefault();
-    setError('');
-    try {
-      const res = await createBug(form);
-      onBugCreated(res.data); // Pass new bug back to parent
-      setForm({ title: '', description: '' }); // Clear form
-    } catch (err) {
-      console.error(err);
-      setError('Failed to create bug. Please try again.');
+    if (!bug.title || !bug.description) {
+      alert("Title and Description are required!");
+      return;
     }
+    onSubmit(bug);
+    setBug({ title: "", description: "", status: "open" });
   };
 
   return (
-    <form onSubmit={handleSubmit} className="p-4 bg-white shadow-md rounded-lg">
-      <h2 className="text-xl mb-4 font-semibold">Report a Bug</h2>
+    <form onSubmit={handleSubmit} className="bug-form">
+      <div>
+        <label>Title:</label>
+        <input
+          type="text"
+          name="title"
+          value={bug.title}
+          onChange={handleChange}
+          required
+        />
+      </div>
 
-      <input
-        type="text"
-        placeholder="Bug title"
-        value={form.title}
-        onChange={(e) => setForm({ ...form, title: e.target.value })}
-        required
-        className="block w-full mb-3 p-2 border rounded"
-      />
+      <div>
+        <label>Description:</label>
+        <textarea
+          name="description"
+          value={bug.description}
+          onChange={handleChange}
+          required
+        />
+      </div>
 
-      <textarea
-        placeholder="Description"
-        value={form.description}
-        onChange={(e) => setForm({ ...form, description: e.target.value })}
-        required
-        rows="4"
-        className="block w-full mb-3 p-2 border rounded"
-      />
+      <div>
+        <label>Status:</label>
+        <select name="status" value={bug.status} onChange={handleChange}>
+          <option value="open">Open</option>
+          <option value="in-progress">In Progress</option>
+          <option value="resolved">Resolved</option>
+        </select>
+      </div>
 
-      {error && <p className="text-red-500 mb-3">{error}</p>}
-
-      <button
-        type="submit"
-        className="bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded transition"
-      >
-        Report Bug
-      </button>
+      <button type="submit">Submit</button>
     </form>
   );
-}
+};
+
+export default BugForm;
